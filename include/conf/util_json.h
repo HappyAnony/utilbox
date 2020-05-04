@@ -95,8 +95,9 @@ struct json_object* util_json_object_new_array();
 
 /* util_json_object_free - free a struct json_object object which is json_type_array or json_type_object type
  * @json_object: &struct json_object pointer which is json_type_array or json_type_object type
+ * @return: zero for success, non-zero for fail
  * */
-bool util_json_object_free(struct json_object* json_object);
+int util_json_object_free(struct json_object* json_object);
 
 
 
@@ -125,9 +126,9 @@ struct json_object* util_json_string_to_object(char *json_string);
 /* util_json_object_del_object_by_key - delete the object corresponding to @key in @json_object
  * @json_object: &struct json_object pointer which is json_type_object type
  * @key: char *
- * @return: true for success, false for fail
+ * @return: zero for success, non-zero for fail
  * */
-bool util_json_object_del_object_by_key(struct json_object *json_object, char *key);
+int util_json_object_del_object_by_key(struct json_object *json_object, char *key);
 
 
 
@@ -135,9 +136,9 @@ bool util_json_object_del_object_by_key(struct json_object *json_object, char *k
  * @json_object: &struct json_object pointer which is json_type_object type
  * @key: char *
  * @value: &struct json_object pointer which is any type
- * @return: true for success, false for fail
+ * @return: zero for success, non-zero for fail
  * */
-bool util_json_object_add_object_by_key(struct json_object *json_object, char *key, struct json_object *val);
+int util_json_object_add_object_by_key(struct json_object *json_object, char *key, struct json_object *val);
 
 
 
@@ -153,60 +154,44 @@ struct json_object* util_json_object_get_object_by_key(struct json_object *json_
 
 
 
-/***********************************************数组对象操作***************************************************************/
-/* 获得jsonObject数组对象的长度(元素个数)
- * jsonObject        : struct json_object *(数组对象)
- * return            : int(数组长度)
- * notice            : 使用之前需要判断jsonObject是否是数组对象
- * */
-#define JsonArrayGetLength(jsonObject)                                                                      \
-({                                                                                                          \
-    int len = 0;                                                                                            \
-    if (jsonObject->o_type != json_type_array)                                                              \
-    {                                                                                                       \
-        len = 0;                                                                                            \
-    }                                                                                                       \
-    else                                                                                                    \
-    {                                                                                                       \
-        len = json_object_array_length(jsonObject);                                                         \
-    }                                                                                                       \
-    len;                                                                                                    \
-})
 
-/* 向jsonObject数组对象内添加一个jsonObjectValue对象
- * jsonObject        : struct json_object *(数组对象)
- * jsonObjectValue   : struct json_object *(字典/数组/字符串/整数/浮点数对象)
- * return            : int(jsonObjectValue对象在数组中的下标索引)
- * notice            : 使用之前需要判断jsonObject是否是数组对象
+/* util_json_object_array_length - get the length of struct json_object object which is json_type_array type
+ * @json_object: &struct json_object pointer which is json_type_array type
+ * @return: the length value for success, -1 for fail
  * */
-#define JsonArrayAddFieldByValue(jsonObject, jsonObjectValue)               json_object_array_add(jsonObject, jsonObjectValue)
-
-/* 通过idx下标索引获得jsonObject数组对象中的某一特定的对象
- * jsonObject        : struct json_object *(数组对象)
- * idx               : int(下标索引)
- * return            : struct json_object *(字典/数组/字符串/整数/浮点数对象)
- * */
-#define JsonArrayGetFieldByIdx(jsonObject, idx)                                                             \
-({                                                                                                          \
-   struct json_object *pObj = NULL;                                                                         \
-   if (jsonObject->o_type != json_type_array)                                                               \
-   {                                                                                                        \
-       pObj = NULL;                                                                                         \
-   }                                                                                                        \
-   else                                                                                                     \
-   {                                                                                                        \
-       pObj = json_object_array_get_idx(jsonObject, idx);                                                   \
-   }                                                                                                        \
-   pObj;                                                                                                    \
-})
+int util_json_array_length(struct json_object *json_object);
 
 
-/* 更新jsonObject数组对象中idx下标索引指定的对象的值为jsonObjectValue对象
- * jsonObject        : struct json_object *(数组对象)
- * idx               : int(下标索引)
- * jsonObjectValue   : struct json_object *(字典/数组/字符串/整数/浮点数对象)
+
+/* util_json_object_array_add_by_value - add a any type of @value object to @json_object object which is json_type_array type
+ * @json_object: &struct json_object pointer which is json_type_array type
+ * @value: any type of &struct json_object pointer
+ * @return: the subscript index of @value object in array object for success, -1 for fail
+ *
  * */
-#define JsonArrayUpdateFieldByIdx(jsonObject, idx, jsonObjectValue)         json_object_array_put_idx(jsonObject, idx, jsonObjectValue)
+int util_json_array_add_object_by_value(struct json_object *json_object, struct json_object *value);
+
+
+
+/* util_json_array_get_object_by_idx - get the object corresponding to @idx subscript index in @json_object
+ * @json_object: &struct json_object pointer which is json_type_array type
+ * @idx: the subscript index in @json_object array object
+ * &return: struct json_object pointer which is any type
+ *
+ * &struct json_object pointer can be tested whether is legal by util_json_object_is_error
+ * &struct json_object pointer can be freed by util_json_object_free
+ * */
+struct json_object* util_json_array_get_object_by_idx(struct json_object *json_object, int idx);
+
+
+/* util_json_array_update_object_by_idx - replace the object corresponding to @idx subscript index in @json_object with @value object
+ * @json_object: &struct json_object pointer which is json_type_array type
+ * @idx: the subscript index in @json_object array object
+ * @value: any type of &struct json_object pointer
+ * @return: zero for success, non-zero for fail
+ *
+ * */
+int util_json_array_update_object_by_idx(struct json_object *json_object, int idx, struct json_object *value);
 
 
 

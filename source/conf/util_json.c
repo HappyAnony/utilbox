@@ -56,11 +56,11 @@ struct json_object* util_json_object_new_array()
     return json_object_new_array();
 }
 
-bool util_json_object_free(struct json_object* json_object)
+int util_json_object_free(struct json_object* json_object)
 {
     json_object_put(json_object);
     json_object = NULL;
-    return true;
+    return 0;
 }
 
 char* util_json_object_to_string(struct json_object *json_object)
@@ -75,27 +75,27 @@ struct json_object* util_json_string_to_object(char *json_string)
     return json_tokener_parse(json_string);
 }
 
-bool util_json_object_del_object_by_key(struct json_object *json_object, char *key)
+int util_json_object_del_object_by_key(struct json_object *json_object, char *key)
 {
-    if (util_json_object_is_error(json_object)) return false;
-    if (!key) return false;
+    if (util_json_object_is_error(json_object)) return -1;
+    if (!key) return -1;
     if (json_object->o_type == json_type_object)
     {
         json_object_object_del(json_object, key);
     }
-    return true;
+    return 0;
 }
 
-bool util_json_object_add_object_by_key(struct json_object *json_object, char *key, struct json_object *val)
+int util_json_object_add_object_by_key(struct json_object *json_object, char *key, struct json_object *val)
 {
-    if (util_json_object_is_error(json_object)) return false;
-    if (util_json_object_is_error(val)) return false;
-    if (!key) return false;
+    if (util_json_object_is_error(json_object)) return -1;
+    if (util_json_object_is_error(val)) return -1;
+    if (!key) return -1;
     if (json_object->o_type == json_type_object)
     {
         json_object_object_add(json_object, key, val);
     }
-    return true;
+    return 0;
 }
 
 struct json_object* util_json_object_get_object_by_key(struct json_object *json_object, char *key)
@@ -104,4 +104,34 @@ struct json_object* util_json_object_get_object_by_key(struct json_object *json_
     if (!key) return NULL;
     if (json_object->o_type != json_type_object) return NULL;
     return json_object_object_get(json_object, key);
+}
+
+int util_json_array_length(struct json_object *json_object)
+{
+	if (util_json_object_is_error(json_object)) return -1;
+	if (json_object->o_type != json_type_array) return -1;
+	return json_object_array_length(json_object);
+}
+
+int util_json_array_add_object_by_value(struct json_object *json_object, struct json_object *value)
+{
+	if (util_json_object_is_error(json_object)) return -1;
+	if (util_json_object_is_error(value)) return -1;
+	if (json_object->o_type != json_type_array) return -1;
+	return json_object_array_add(json_object, value);
+}
+
+struct json_object* util_json_array_get_object_by_idx(struct json_object *json_object, int idx)
+{
+	if (util_json_object_is_error(json_object)) return NULL;
+	if (json_object->o_type != json_type_array) return NULL;
+	return json_object_array_get_idx(json_object, idx);
+}
+
+int util_json_array_update_object_by_idx(struct json_object *json_object, int idx, struct json_object *value)
+{
+	if (util_json_object_is_error(json_object)) return -1;
+	if (util_json_object_is_error(value)) return -1;
+	if (json_object->o_type != json_type_array) return -1;
+	return json_object_array_put_idx(json_object, idx, value);
 }
