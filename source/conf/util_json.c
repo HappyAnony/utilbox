@@ -135,3 +135,69 @@ int util_json_array_update_object_by_idx(struct json_object *json_object, int id
 	if (json_object->o_type != json_type_array) return -1;
 	return json_object_array_put_idx(json_object, idx, value);
 }
+
+struct json_object* util_json_object_parse_bool(bool b)
+{
+    return json_object_new_boolean(b);
+}
+
+struct json_object* util_json_object_parse_int(int i)
+{
+    return json_object_new_int(i);
+}
+
+struct json_object* util_json_object_parse_double(double d)
+{
+    return json_object_new_double(d);
+}
+
+struct json_object* util_json_object_parse_string(char *s)
+{
+    if (!s) return NULL;
+#if 0
+    return json_object_new_string(s);
+#else
+    return json_tokener_parse(s);
+#endif
+}
+
+struct json_object* util_json_object_parse_string_slice(char *s, int len)
+{
+    if (!s) return NULL;
+    return json_object_new_string_len(s, len);
+}
+
+bool util_json_object_dump_bool(struct json_object* json_object)
+{
+    return json_object_get_boolean(json_object);
+}
+
+int util_json_object_dump_int(struct json_object* json_object)
+{
+    return json_object_get_int(json_object);
+}
+
+double util_json_object_dump_double(struct json_object* json_object)
+{
+    return json_object_get_double(json_object);
+}
+
+char* util_json_object_dump_string(struct json_object* json_object)
+{
+    if (util_json_object_is_error(json_object)) return NULL;
+#if 0
+    return json_object_get_string(json_object);
+#else
+    return json_object_to_json_string(json_object);
+#endif
+}
+
+struct lh_table* util_json_object_dump_table(struct json_object* json_object)
+{
+    return json_object_get_object(json_object);
+}
+
+struct array_list* util_json_object_dump_array(struct json_object* json_object)
+{
+    return json_object_get_array(json_object);
+}
