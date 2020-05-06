@@ -27,7 +27,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <util_json.h>
+#include <conf/util_json.h>
 
 bool util_json_object_is_error(struct json_object* json_object)
 {
