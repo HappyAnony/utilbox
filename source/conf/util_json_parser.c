@@ -35,6 +35,28 @@
 #define   JSON_DICT_LEN_MAX        (200)
 #define   JSON_ARRAY_DEPTH_MAX     (2)
 
+
+static int json_parser_new(struct json_parser* json_parser, json_op op, struct json_op_attr *op_attr)
+{
+    if (!json_parser) return -1;
+    if (!op_attr) return -1;
+
+    if (op_attr->op_type == JSON_OP_NEW_DICT)
+        json_parser->json_object = util_json_object_new_object();
+    else
+    if (op_attr->op_type == JSON_OP_NEW_ARRAY)
+        json_parser->json_object = util_json_object_new_array();
+
+    return 0;
+}
+
+static struct {
+    json_op     op_type;
+    int (*callback)(struct json_parser* json_parser, json_op op, struct json_op_attr *op_attr);
+} json_parser_reactor[JSON_OP_NUM] = {
+        {JSON_OP_NEW         ,         json_parser_new}
+};
+
 struct json_parser* json_parser_create(struct json_parser_attr *attr)
 {
     struct json_parser *json_parser = NULL;
@@ -78,7 +100,8 @@ struct json_parser* json_parser_create(struct json_parser_attr *attr)
 }
 int json_parser_ctl(struct json_parser* json_parser, json_op op, struct json_op_attr *op_attr)
 {
-    return 0;
+    if (op >= JSON_OP_NUM) return -1;
+    return json_parser_reactor[op].callback(json_parser, op, op_attr);
 }
 int json_parser_free(struct json_parser* json_parser)
 {

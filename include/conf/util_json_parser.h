@@ -113,29 +113,21 @@ struct json_parser {
 typedef enum {
     /* create a struct json_object JSON-OBJECT */
     JSON_OP_NEW,
-    JSON_OP_NEW_DICT,   /* create {} JSON-OBJECT */
-    JSON_OP_NEW_ARRAY,  /* create [] JSON-OBJECT */
-
 
     /* parse the json-data(json-string or json-file and so on) and generate the struct json_object JSON-OBJECT */
     JSON_OP_PARSE,
 
-
     /* add field to JSON-OBJECT by JSON-OID */
     JSON_OP_ADD,
-
 
     /* get the value of field in JSON-OBJECT by JSON-OID */
     JSON_OP_GET,
 
-
     /* update the value of field in JSON-OBJECT by JSON-OID */
     JSON_OP_UPDATE,
 
-
     /* delete the value of field in JSON-OBJECT by JSON-OID */
     JSON_OP_DELETE,
-
 
     /* dump the struct json_object JSON-OBJECT to json-data, such as json-string or json-file */
     JSON_OP_DUMP,
@@ -143,8 +135,46 @@ typedef enum {
     JSON_OP_NUM
 } json_op;
 
+typedef enum {
+    JSON_OP_NEW_DICT        = 0x0 ,           /* create {} JSON-OBJECT */
+    JSON_OP_NEW_ARRAY             ,           /* create [] JSON-OBJECT */
+
+    JSON_OP_PARSE_BOOL      = 0x10,
+    JSON_OP_PARSE_INT32           ,
+    JSON_OP_PARSE_DOUBLE          ,
+    JSON_OP_PARSE_STRING          ,
+    JSON_OP_PARSE_FILE            ,
+
+    JSON_OP_ADD_BOOL        = 0x20,
+    JSON_OP_ADD_INT32             ,
+    JSON_OP_ADD_DOUBLE            ,
+    JSON_OP_ADD_STRING            ,
+
+    JSON_OP_GET_BOOL        = 0x30,
+    JSON_OP_GET_INT32             ,
+    JSON_OP_GET_DOUBLE            ,
+    JSON_OP_GET_STRING            ,
+
+    JSON_OP_UPDATE_BOOL     = 0x40,
+    JSON_OP_UPDATE_INT32          ,
+    JSON_OP_UPDATE_DOUBLE         ,
+    JSON_OP_UPDATE_STRING         ,
+
+    JSON_OP_DELETE_BOOL     = 0x50,
+    JSON_OP_DELETE_INT32          ,
+    JSON_OP_DELETE_DOUBLE         ,
+    JSON_OP_DELETE_STRING         ,
+
+    JSON_OP_DUMP_BOOL       = 0x60,
+    JSON_OP_DUMP_INT32            ,
+    JSON_OP_DUMP_DOUBLE           ,
+    JSON_OP_DUMP_STRING           ,
+    JSON_OP_DUMP_FILE             ,
+
+    JSON_OP_OBJ_NUM
+} json_op_obj;
 struct json_op_attr{
-    json_op         op_type;
+    json_op_obj     op_type;
     union {
 
     }               op_data;
