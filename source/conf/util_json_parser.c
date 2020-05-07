@@ -49,14 +49,13 @@ struct json_parser* json_parser_create(struct json_parser_attr *attr)
         json_parser->attr.json_array_depth  = ((attr && attr->json_array_depth) ? attr->json_array_depth : JSON_ARRAY_DEPTH_MAX);
 
         /* alloc memory for JSON-FIELD */
-        struct json_field *json_field_memory = calloc(json_parser->attr.json_field_num,
+        struct json_field *json_field_memory = (struct json_field *)calloc(json_parser->attr.json_field_num,
                 sizeof(struct json_field));
-        char              *json_dict_memory  = calloc(json_parser->attr.json_field_num * json_parser->attr.json_dict_length,
+        char              *json_dict_memory  = (char *)calloc(json_parser->attr.json_field_num * json_parser->attr.json_dict_length,
                 sizeof(char));
-        struct json_array *json_array_memory = calloc(json_parser->attr.json_field_num * json_parser->attr.json_array_depth,
+        struct json_array *json_array_memory = (struct json_array *)calloc(json_parser->attr.json_field_num * json_parser->attr.json_array_depth,
                 sizeof(struct json_array));
-        if (!json_field_memory || !json_dict_memory || !json_array_memory)
-        {
+        if (!json_field_memory || !json_dict_memory || !json_array_memory) {
             if (json_field_memory) free(json_field_memory);
             if (json_dict_memory)  free(json_dict_memory);
             if (json_array_memory) free(json_array_memory);
@@ -67,12 +66,11 @@ struct json_parser* json_parser_create(struct json_parser_attr *attr)
 
         json_parser->json_field = json_field_memory;
         unsigned int field = 0;
-        for (field = 0; field < json_parser->attr.json_field_num; field++)
-        {
+        for (field = 0; field < json_parser->attr.json_field_num; field++) {
             json_parser->json_field[field].json_dict = json_dict_memory +
-                    (field * (json_parser->attr.json_dict_length) * (sizeof(char)));
+                    (field * (json_parser->attr.json_dict_length));
             json_parser->json_field[field].json_arry = json_array_memory +
-                    (field * (json_parser->attr.json_array_depth) * (sizeof(struct json_array)));
+                    (field * (json_parser->attr.json_array_depth));
         }
     } while(0);
 
@@ -84,5 +82,13 @@ int json_parser_ctl(struct json_parser* json_parser, json_op op, struct json_op_
 }
 int json_parser_free(struct json_parser* json_parser)
 {
+    if (json_parser) {
+        if (json_parser->json_field[0].json_dict) free(json_parser->json_field[0].json_dict);
+        if (json_parser->json_field[0].json_arry) free(json_parser->json_field[0].json_arry);
+        if (json_parser->json_field) free(json_parser->json_field);
+        if (!util_json_object_is_error(json_parser->json_object))
+            util_json_object_free(json_parser->json_object);
+        if (json_parser) free(json_parser);
+    }
     return 0;
 }
