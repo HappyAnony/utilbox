@@ -41,20 +41,113 @@ static int json_parser_new(struct json_parser* json_parser, json_op op, struct j
     if (!json_parser) return -1;
     if (!op_attr) return -1;
 
-    if (op_attr->op_type == JSON_OP_NEW_DICT)
-        json_parser->json_object = util_json_object_new_object();
-    else
-    if (op_attr->op_type == JSON_OP_NEW_ARRAY)
-        json_parser->json_object = util_json_object_new_array();
+    switch (op_attr->op_type)
+    {
+    	case JSON_OP_NEW_DICT:
+    		json_parser->json_object = util_json_object_new_object();
+    		break;
+    	case JSON_OP_NEW_ARRAY:
+    		json_parser->json_object = util_json_object_new_array();
+    		break;
+    	default:
+    		break;
+    }
 
     return 0;
 }
+static int json_parser_parse(struct json_parser* json_parser, json_op op, struct json_op_attr *op_attr)
+{
+    if (!json_parser) return -1;
+    if (!op_attr) return -1;
 
+    switch (op_attr->op_type)
+    {
+    	case JSON_OP_PARSE_BOOL:
+    		json_parser->json_object = util_json_object_parse_bool(op_attr->op_data.parse_data.json_bool);
+    		break;
+    	case JSON_OP_PARSE_INT32:
+    		json_parser->json_object = util_json_object_parse_int(op_attr->op_data.parse_data.json_int);
+    		break;
+    	case JSON_OP_PARSE_DOUBLE:
+    		json_parser->json_object = util_json_object_parse_double(op_attr->op_data.parse_data.json_double);
+    		break;
+    	case JSON_OP_PARSE_STRING:
+    		json_parser->json_object = util_json_object_parse_string(op_attr->op_data.parse_data.json_string);
+    		break;
+    	case JSON_OP_PARSE_FILE:
+    		break;
+    	default:
+    		break;
+    }
+
+    if (util_json_object_is_error(json_parser->json_object))
+    	return -1;
+	return 0;
+}
+static int json_parser_add(struct json_parser* json_parser, json_op op, struct json_op_attr *op_attr)
+{
+    if (!json_parser) return -1;
+    if (!op_attr) return -1;
+	return 0;
+}
+static int json_parser_get(struct json_parser* json_parser, json_op op, struct json_op_attr *op_attr)
+{
+    if (!json_parser) return -1;
+    if (!op_attr) return -1;
+	return 0;
+}
+static int json_parser_update(struct json_parser* json_parser, json_op op, struct json_op_attr *op_attr)
+{
+    if (!json_parser) return -1;
+    if (!op_attr) return -1;
+	return 0;
+}
+static int json_parser_delete(struct json_parser* json_parser, json_op op, struct json_op_attr *op_attr)
+{
+    if (!json_parser) return -1;
+    if (!op_attr) return -1;
+	return 0;
+}
+static int json_parser_dump(struct json_parser* json_parser, json_op op, struct json_op_attr *op_attr)
+{
+    if (!json_parser) return -1;
+    if (!op_attr) return -1;
+
+    if (util_json_object_is_error(json_parser->json_object)) return -1;
+
+    switch (op_attr->op_type)
+    {
+    	case JSON_OP_DUMP_BOOL:
+    		op_attr->op_data.dump_data.json_bool   = util_json_object_dump_bool(json_parser->json_object);
+    		break;
+    	case JSON_OP_DUMP_INT32:
+    		op_attr->op_data.dump_data.json_int    = util_json_object_dump_int(json_parser->json_object);
+    		break;
+    	case JSON_OP_DUMP_DOUBLE:
+    		op_attr->op_data.dump_data.json_double = util_json_object_dump_double(json_parser->json_object);
+    		break;
+    	case JSON_OP_DUMP_STRING:
+    		snprintf(op_attr->op_data.dump_data.json_string, op_attr->op_data.dump_data.string_len,
+    				"%s", util_json_object_dump_string(json_parser->json_object));
+    		break;
+    	case JSON_OP_DUMP_FILE:
+    		break;
+    	default:
+    		break;
+    }
+	return 0;
+}
 static struct {
     json_op     op_type;
     int (*callback)(struct json_parser* json_parser, json_op op, struct json_op_attr *op_attr);
 } json_parser_reactor[JSON_OP_NUM] = {
-        {JSON_OP_NEW         ,         json_parser_new}
+        {JSON_OP_NEW           ,         json_parser_new   },
+		{JSON_OP_PARSE         ,         json_parser_parse },
+		{JSON_OP_ADD           ,         json_parser_add   },
+		{JSON_OP_GET           ,         json_parser_get   },
+		{JSON_OP_UPDATE        ,         json_parser_update},
+		{JSON_OP_DELETE        ,         json_parser_delete},
+		{JSON_OP_DUMP          ,         json_parser_dump  }
 };
 
 struct json_parser* json_parser_create(struct json_parser_attr *attr)

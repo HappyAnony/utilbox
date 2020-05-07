@@ -173,10 +173,27 @@ typedef enum {
 
     JSON_OP_OBJ_NUM
 } json_op_obj;
+typedef union op_data_t1 {
+	bool           json_bool;
+	unsigned int   json_int;
+	double         json_double;
+	char           *json_string;
+	unsigned int   string_len;
+	char           *json_file;
+} op_data_t1;
+typedef struct op_data_t2 {
+	char           json_oid[512];
+	op_data_t1     value;
+} op_data_t2;
 struct json_op_attr{
     json_op_obj     op_type;
     union {
-
+    	op_data_t1    parse_data;
+    	op_data_t2    add_data;
+    	op_data_t2    get_data;
+    	op_data_t2    update_data;
+    	op_data_t2    delete_data;
+    	op_data_t1    dump_data;
     }               op_data;
 };
 
