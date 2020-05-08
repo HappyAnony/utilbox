@@ -182,7 +182,7 @@ typedef union op_data_t1 {
 	char           *json_file;
 } op_data_t1;
 typedef struct op_data_t2 {
-	char           json_oid[512];
+	char           *json_oid;
 	op_data_t1     value;
 } op_data_t2;
 struct json_op_attr{
