@@ -33,7 +33,6 @@
 #include <stdarg.h>
 #include <conf/util_json_parser.h>
 
-
 #define   JSON_FIELD_NUM_MAX       (4)
 #define   JSON_DICT_LEN_MAX        (200)
 #define   JSON_ARRAY_DEPTH_MAX     (2)
@@ -157,189 +156,57 @@ static int parse_json_oid(const char *json_oid, struct json_parser *json_parser)
     return 0;
 }
 
-struct json_object *json_search_object(struct json_object *container, const char *field)
+static int json_parser_new(struct json_parser* json_parser, json_op op, struct json_op_attr *op_attr)
 {
-    if (util_json_object_is_error(container) || field == NULL) return NULL;
+    if (!json_parser) return -1;
+    if (!op_attr) return -1;
 
-    char *path = NULL;
-    char *p    = NULL;
-    char *q    = NULL;
-    const char *delim = ".";
-    struct json_object *obj = NULL;
-    struct json_object *container_obj = NULL;
-    char *strtok_save;
-
-    path = strdup(field);
-    if (!path) return NULL;
-
-    p             = path;
-    container_obj = container;
-
-    q = strtok_r(p, delim, &strtok_save);
-    while (q) {
-        obj = util_json_object_get_object_by_key(container_obj, q);
-        if(!util_json_object_is_error(obj)) {
-            container_obj = obj;
-        } else {
-            free(path);
-            return NULL;
-        }
-
-        q = strtok_r(NULL, delim, &strtok_save);
-    }
-
-    free(path);
-    return obj;
-}
-
-struct json_object *json_field_search_object(struct json_parser* json_parser, const char *json_oid)
-{
-    if (util_json_object_is_error(json_parser->json_object) || json_oid == NULL) return NULL;
-    struct json_object *obj = NULL;
-    struct json_object *tmp_obj = json_parser->json_object;
-
-    /* parse the JSON-OID and store */
-    if (0 != parse_json_oid(json_oid, json_parser)) return NULL;
-
-    /* get @obj */
-    unsigned int field_item = 0;
-    unsigned int array_item = 0;
-    for (field_item = 0; field_item < json_parser->attr.json_field_num; field_item++)
+    switch (op_attr->op_type)
     {
-        if (!json_parser->json_field[field_item].exist) continue;
-
-        if (NULL == (obj = json_search_object(tmp_obj, json_parser->json_field[field_item].json_dict)))
-            return obj;
-        tmp_obj = obj;
-
-        for (array_item = 0; array_item < json_parser->attr.json_array_depth; array_item++)
-        {
-            if (json_parser->json_field[field_item].json_arry[array_item].exist) {
-                if (tmp_obj->o_type == json_type_array) {
-                    obj = JsonArrayGetFieldByIdx(tmp_obj, json_parser->json_field[field_item].json_arry[array_item].index);
-                    if (util_json_object_is_error(obj)) return NULL;
-                    tmp_obj = obj;
-                } else {
-                    return NULL;
-                }
-            }
-        }
+    	case JSON_OP_NEW_DICT:
+    		json_parser->json_object = util_json_object_new_object();
+    		break;
+    	case JSON_OP_NEW_ARRAY:
+    		json_parser->json_object = util_json_object_new_array();
+    		break;
+    	default:
+    		break;
     }
-    return obj;
+
+    return 0;
 }
 
-struct json_object *json_search_parent_object(struct json_object *container, const char *field, char *node, int bufsize)
+static int json_parser_parse(struct json_parser* json_parser, json_op op, struct json_op_attr *op_attr)
 {
-    if (util_json_object_is_error(container) || field == NULL || node == NULL) return NULL;
+    if (!json_parser) return -1;
+    if (!op_attr) return -1;
 
-    char *last_delim  = NULL;
-    char *parent_path = NULL;
-    int  parent_path_len = 0;
-    struct json_object *parent_obj = NULL;
-
-    last_delim = strrchr(field, '.');
-    memset(node, 0, bufsize);
-    if (last_delim) {
-        parent_path_len = last_delim - field;
-        parent_path = calloc(parent_path_len + 1, sizeof(char));
-        if (!parent_path) return NULL;
-
-        strncpy(parent_path, field, parent_path_len);
-        strncpy(node, last_delim + 1, bufsize - 1); /* Last node */
-
-        parent_obj = json_search_object(container, parent_path);
-        free(parent_path);
-        return parent_obj;
-    } else {
-        strncpy(node, field, bufsize - 1);
-        return container;
-    }
-}
-
-struct json_object *Json_field_search_parent_object(struct json_parser* json_parser, const char *json_oid, void *member, ...)
-{
-    if (util_json_object_is_error(json_parser->json_object) || field == NULL || node == NULL) return NULL;
-
-    struct json_object *parent_obj  = NULL;
-    struct json_object *tmp_obj     = json_parser->json_object;
-    va_list ap;
-    int  buffer_len        = 0;
-    int  array_flag        = 0;
-    int  array_index       = 0;
-    int  field_len = strlen(json_oid) + 1;
-    char tmp_node[field_len];
-    memset(tmp_node, 0, sizeof(tmp_node));
-
-    /* parse the JSON-OID and store */
-    if (0 != parse_json_oid(json_oid, json_parser)) return NULL;
-
-    /* get @parent_obj */
-    unsigned int field_item = 0;
-    unsigned int array_item = 0;
-    for (field_item = 0; field_item < json_parser->attr.json_field_num; field_item++)
+    switch (op_attr->op_type)
     {
-        if (!json_parser->json_field[field_item].exist) continue;
-
-        if (field_item != 0) {
-            if (tmp_obj->o_type == json_type_array) {
-                parent_obj = util_json_array_get_object_by_idx(tmp_obj, array_index);
-
-                if(!util_json_object_is_error(parent_obj)) {
-                    tmp_obj = parent_obj;
-                    array_flag = 0;
-                } else {
-                    return NULL;
-                }
-            }  else {
-                return NULL;
-            }
-        }
-
-        memset(tmp_node, 0, sizeof(field_len));
-        if (NULL == (parent_obj = json_search_parent_object(tmp_obj, json_parser->json_field[field_item].json_dict, tmp_node, field_len)))
-            return parent_obj;
-        tmp_obj = parent_obj;
-
-        for (array_item = 0; array_item < json_parser->attr.json_array_depth; array_item++)
-        {
-            if (json_parser->json_field[field_item].json_arry[array_item].exist) {
-                /* parent obj is dict obj */
-                if (array_item == 0) {
-                    parent_obj = util_json_object_get_object_by_key(tmp_obj, tmp_node);
-                }
-                /* parent obj is array obj */
-                else if (tmp_obj->o_type == json_type_array) {
-                    parent_obj = util_json_array_get_object_by_idx(tmp_obj, array_index);
-                } else {
-                    return NULL;
-                }
-
-                if(!util_json_object_is_error(parent_obj)) {
-                    tmp_obj = parent_obj;
-                    array_index = json_parser->json_field[field_item].json_arry[array_item].index;
-                    array_flag = 1;
-                } else {
-                    return NULL;
-                }
-            }
-        }
-
+    	case JSON_OP_PARSE_BOOL:
+    		json_parser->json_object = util_json_object_parse_bool(op_attr->op_data.parse_data.json_bool);
+    		break;
+    	case JSON_OP_PARSE_INT32:
+    		json_parser->json_object = util_json_object_parse_int(op_attr->op_data.parse_data.json_int);
+    		break;
+    	case JSON_OP_PARSE_DOUBLE:
+    		json_parser->json_object = util_json_object_parse_double(op_attr->op_data.parse_data.json_double);
+    		break;
+    	case JSON_OP_PARSE_STRING:
+    		json_parser->json_object = util_json_object_parse_string(op_attr->op_data.parse_data.json_string);
+    		break;
+    	case JSON_OP_PARSE_FILE:
+    		break;
+    	default:
+    		break;
     }
 
-    /* return the @parent_obj and assign @member value */
-    if (array_flag) {
-        *(int *)member    = array_index;
-    } else {
-        va_start(ap, member);
-        buffer_len = va_arg(ap, int);
-        memset((char *)member, 0, buffer_len);
-        snprintf((char *)member, buffer_len, "%s", tmp_node);
-        va_end (ap);
-    }
-    return parent_obj;
+    if (util_json_object_is_error(json_parser->json_object))
+    	return -1;
+	return 0;
 }
 
-struct json_object *json_new_parent_object(struct json_object *container, const char *field, char *node, int bufsize)
+static struct json_object *json_new_parent_object(struct json_object *container, const char *field, char *node, int bufsize)
 {
     if (util_json_object_is_error(container) || field == NULL || node == NULL) return NULL;
 
@@ -389,7 +256,7 @@ struct json_object *json_new_parent_object(struct json_object *container, const 
             parent_obj = obj;
         } else {
             obj = util_json_object_new_object();
-            if (util_json_object_is_error(obj) {
+            if (util_json_object_is_error(obj)) {
                 free(path);
                 return NULL;
             }
@@ -403,8 +270,7 @@ struct json_object *json_new_parent_object(struct json_object *container, const 
 
     return parent_obj;
 }
-
-struct json_object *json_field_new_parent_object(struct json_parser* json_parser, const char *json_oid, void *member, ...)
+static struct json_object *json_field_new_parent_object(struct json_parser* json_parser, const char *json_oid, void *member, ...)
 {
     if (util_json_object_is_error(json_parser->json_object) || json_oid == NULL || member == NULL) return NULL;
 
@@ -505,55 +371,6 @@ struct json_object *json_field_new_parent_object(struct json_parser* json_parser
     }
     return parent_obj;
 }
-
-static int json_parser_new(struct json_parser* json_parser, json_op op, struct json_op_attr *op_attr)
-{
-    if (!json_parser) return -1;
-    if (!op_attr) return -1;
-
-    switch (op_attr->op_type)
-    {
-    	case JSON_OP_NEW_DICT:
-    		json_parser->json_object = util_json_object_new_object();
-    		break;
-    	case JSON_OP_NEW_ARRAY:
-    		json_parser->json_object = util_json_object_new_array();
-    		break;
-    	default:
-    		break;
-    }
-
-    return 0;
-}
-static int json_parser_parse(struct json_parser* json_parser, json_op op, struct json_op_attr *op_attr)
-{
-    if (!json_parser) return -1;
-    if (!op_attr) return -1;
-
-    switch (op_attr->op_type)
-    {
-    	case JSON_OP_PARSE_BOOL:
-    		json_parser->json_object = util_json_object_parse_bool(op_attr->op_data.parse_data.json_bool);
-    		break;
-    	case JSON_OP_PARSE_INT32:
-    		json_parser->json_object = util_json_object_parse_int(op_attr->op_data.parse_data.json_int);
-    		break;
-    	case JSON_OP_PARSE_DOUBLE:
-    		json_parser->json_object = util_json_object_parse_double(op_attr->op_data.parse_data.json_double);
-    		break;
-    	case JSON_OP_PARSE_STRING:
-    		json_parser->json_object = util_json_object_parse_string(op_attr->op_data.parse_data.json_string);
-    		break;
-    	case JSON_OP_PARSE_FILE:
-    		break;
-    	default:
-    		break;
-    }
-
-    if (util_json_object_is_error(json_parser->json_object))
-    	return -1;
-	return 0;
-}
 static int json_field_add(struct json_parser* json_parser, char *json_oid, void *value, enum json_type type)
 {
     if (util_json_object_is_error(json_parser->json_object) || json_oid == NULL || value == NULL) return -1;
@@ -579,7 +396,7 @@ static int json_field_add(struct json_parser* json_parser, char *json_oid, void 
     do {
         /* generate the @parent_obj */
         if (is_array_obj) {
-            parent_obj = json_field_new_parent_object(json_parser->json_object, json_oid, &member_index);
+            parent_obj = json_field_new_parent_object(json_parser, json_oid, &member_index);
             if (util_json_object_is_error(parent_obj)
                 ||
                 parent_obj->o_type != json_type_array)
@@ -588,7 +405,7 @@ static int json_field_add(struct json_parser* json_parser, char *json_oid, void 
                 break;
             }
         } else {
-            parent_obj = json_field_new_parent_object(json_parser->json_object, json_oid, member_key, oid_len);
+            parent_obj = json_field_new_parent_object(json_parser, json_oid, member_key, oid_len);
             if (util_json_object_is_error(parent_obj)
                 ||
                 parent_obj->o_type != json_type_object)
@@ -637,26 +454,463 @@ static int json_parser_add(struct json_parser* json_parser, json_op op, struct j
 {
     if (!json_parser) return -1;
     if (!op_attr) return -1;
-	return 0;
+
+    int ret = 0;
+
+    switch (op_attr->op_type)
+    {
+        case JSON_OP_ADD_BOOL:
+            ret = json_field_add(json_parser, op_attr->op_data.add_data.json_oid,
+                    &op_attr->op_data.add_data.value.json_bool, json_type_boolean);
+            break;
+        case JSON_OP_ADD_INT32:
+            ret = json_field_add(json_parser, op_attr->op_data.add_data.json_oid,
+                    &op_attr->op_data.add_data.value.json_int, json_type_int);
+            break;
+        case JSON_OP_ADD_DOUBLE:
+            ret = json_field_add(json_parser, op_attr->op_data.add_data.json_oid,
+                    &op_attr->op_data.add_data.value.json_double, json_type_double);
+            break;
+        case JSON_OP_ADD_STRING:
+            ret = json_field_add(json_parser, op_attr->op_data.add_data.json_oid,
+                    op_attr->op_data.add_data.value.json_string, json_type_string);
+            break;
+        default:
+            break;
+    }
+
+	return ret;
+}
+
+static struct json_object *json_search_object(struct json_object *container, const char *field)
+{
+    if (util_json_object_is_error(container) || field == NULL) return NULL;
+
+    char *path = NULL;
+    char *p    = NULL;
+    char *q    = NULL;
+    const char *delim = ".";
+    struct json_object *obj = NULL;
+    struct json_object *container_obj = NULL;
+    char *strtok_save;
+
+    path = strdup(field);
+    if (!path) return NULL;
+
+    p             = path;
+    container_obj = container;
+
+    q = strtok_r(p, delim, &strtok_save);
+    while (q) {
+        obj = util_json_object_get_object_by_key(container_obj, q);
+        if(!util_json_object_is_error(obj)) {
+            container_obj = obj;
+        } else {
+            free(path);
+            return NULL;
+        }
+
+        q = strtok_r(NULL, delim, &strtok_save);
+    }
+
+    free(path);
+    return obj;
+}
+static struct json_object *json_field_search_object(struct json_parser* json_parser, const char *json_oid)
+{
+    if (util_json_object_is_error(json_parser->json_object) || json_oid == NULL) return NULL;
+    struct json_object *obj = NULL;
+    struct json_object *tmp_obj = json_parser->json_object;
+
+    /* parse the JSON-OID and store */
+    if (0 != parse_json_oid(json_oid, json_parser)) return NULL;
+
+    /* get @obj */
+    unsigned int field_item = 0;
+    unsigned int array_item = 0;
+    for (field_item = 0; field_item < json_parser->attr.json_field_num; field_item++)
+    {
+        if (!json_parser->json_field[field_item].exist) continue;
+
+        if (NULL == (obj = json_search_object(tmp_obj, json_parser->json_field[field_item].json_dict)))
+            return obj;
+        tmp_obj = obj;
+
+        for (array_item = 0; array_item < json_parser->attr.json_array_depth; array_item++)
+        {
+            if (json_parser->json_field[field_item].json_arry[array_item].exist) {
+                if (tmp_obj->o_type == json_type_array) {
+                    obj = JsonArrayGetFieldByIdx(tmp_obj, json_parser->json_field[field_item].json_arry[array_item].index);
+                    if (util_json_object_is_error(obj)) return NULL;
+                    tmp_obj = obj;
+                } else {
+                    return NULL;
+                }
+            }
+        }
+    }
+    return obj;
+}
+static int json_field_get(struct json_parser* json_parser, char *json_oid, void *value, enum json_type type, ...)
+{
+    if (util_json_object_is_error(json_parser->json_object) || json_oid == NULL || value == NULL) return -1;
+
+    struct json_object *obj = NULL;
+    char               *val = NULL;
+    va_list ap;
+    int  buffer_len         = 0;
+
+    if (NULL == (obj = json_field_search_object(json_parser, json_oid))) return -1;
+
+    switch (type)
+    {
+        case json_type_boolean:
+            *(bool *)value   = util_json_object_dump_bool(obj);
+            break;
+        case json_type_int:
+            *(int *)value    = util_json_object_dump_int(obj);
+            break;
+        case json_type_double:
+            *(double *)value = util_json_object_dump_double(obj);
+            break;
+        case json_type_string:
+            va_start(ap, type);
+            buffer_len = va_arg(ap, int);
+
+            val = (char *)util_json_object_dump_string(obj);
+
+            memset((char *)value, 0, buffer_len);
+            snprintf((char *)value, buffer_len - 1, "%s", val);
+
+            va_end (ap);
+            break;
+
+        default:
+            break;
+    }
+
+    return 0;
 }
 static int json_parser_get(struct json_parser* json_parser, json_op op, struct json_op_attr *op_attr)
 {
     if (!json_parser) return -1;
     if (!op_attr) return -1;
-	return 0;
+
+    int ret = 0;
+
+    switch (op_attr->op_type)
+    {
+        case JSON_OP_GET_BOOL:
+            ret = json_field_get(json_parser, op_attr->op_data.get_data.json_oid,
+                    &op_attr->op_data.get_data.value.json_bool, json_type_boolean);
+            break;
+        case JSON_OP_GET_INT32:
+            ret = json_field_get(json_parser, op_attr->op_data.get_data.json_oid,
+                    &op_attr->op_data.get_data.value.json_int, json_type_int);
+            break;
+        case JSON_OP_GET_DOUBLE:
+            ret = json_field_get(json_parser, op_attr->op_data.get_data.json_oid,
+                    &op_attr->op_data.get_data.value.json_double, json_type_double);
+            break;
+        case JSON_OP_GET_STRING:
+            ret = json_field_get(json_parser, op_attr->op_data.get_data.json_oid,
+                    op_attr->op_data.get_data.value.json_string, json_type_string,
+                    op_attr->op_data.get_data.value.string_len);
+            break;
+        default:
+            break;
+    }
+
+    return ret;
+}
+
+static struct json_object *json_search_parent_object(struct json_object *container, const char *field, char *node, int bufsize)
+{
+    if (util_json_object_is_error(container) || field == NULL || node == NULL) return NULL;
+
+    char *last_delim  = NULL;
+    char *parent_path = NULL;
+    int  parent_path_len = 0;
+    struct json_object *parent_obj = NULL;
+
+    last_delim = strrchr(field, '.');
+    memset(node, 0, bufsize);
+    if (last_delim) {
+        parent_path_len = last_delim - field;
+        parent_path = calloc(parent_path_len + 1, sizeof(char));
+        if (!parent_path) return NULL;
+
+        strncpy(parent_path, field, parent_path_len);
+        strncpy(node, last_delim + 1, bufsize - 1); /* Last node */
+
+        parent_obj = json_search_object(container, parent_path);
+        free(parent_path);
+        return parent_obj;
+    } else {
+        strncpy(node, field, bufsize - 1);
+        return container;
+    }
+}
+static struct json_object *Json_field_search_parent_object(struct json_parser* json_parser, const char *json_oid, void *member, ...)
+{
+    if (util_json_object_is_error(json_parser->json_object) || json_oid == NULL || member == NULL) return NULL;
+
+    struct json_object *parent_obj  = NULL;
+    struct json_object *tmp_obj     = json_parser->json_object;
+    va_list ap;
+    int  buffer_len        = 0;
+    int  array_flag        = 0;
+    int  array_index       = 0;
+    int  field_len = strlen(json_oid) + 1;
+    char tmp_node[field_len];
+    memset(tmp_node, 0, sizeof(tmp_node));
+
+    /* parse the JSON-OID and store */
+    if (0 != parse_json_oid(json_oid, json_parser)) return NULL;
+
+    /* get @parent_obj */
+    unsigned int field_item = 0;
+    unsigned int array_item = 0;
+    for (field_item = 0; field_item < json_parser->attr.json_field_num; field_item++)
+    {
+        if (!json_parser->json_field[field_item].exist) continue;
+
+        if (field_item != 0) {
+            if (tmp_obj->o_type == json_type_array) {
+                parent_obj = util_json_array_get_object_by_idx(tmp_obj, array_index);
+
+                if(!util_json_object_is_error(parent_obj)) {
+                    tmp_obj = parent_obj;
+                    array_flag = 0;
+                } else {
+                    return NULL;
+                }
+            }  else {
+                return NULL;
+            }
+        }
+
+        memset(tmp_node, 0, sizeof(field_len));
+        if (NULL == (parent_obj = json_search_parent_object(tmp_obj, json_parser->json_field[field_item].json_dict, tmp_node, field_len)))
+            return parent_obj;
+        tmp_obj = parent_obj;
+
+        for (array_item = 0; array_item < json_parser->attr.json_array_depth; array_item++)
+        {
+            if (json_parser->json_field[field_item].json_arry[array_item].exist) {
+                /* parent obj is dict obj */
+                if (array_item == 0) {
+                    parent_obj = util_json_object_get_object_by_key(tmp_obj, tmp_node);
+                }
+                /* parent obj is array obj */
+                else if (tmp_obj->o_type == json_type_array) {
+                    parent_obj = util_json_array_get_object_by_idx(tmp_obj, array_index);
+                } else {
+                    return NULL;
+                }
+
+                if(!util_json_object_is_error(parent_obj)) {
+                    tmp_obj = parent_obj;
+                    array_index = json_parser->json_field[field_item].json_arry[array_item].index;
+                    array_flag = 1;
+                } else {
+                    return NULL;
+                }
+            }
+        }
+
+    }
+
+    /* return the @parent_obj and assign @member value */
+    if (array_flag) {
+        *(int *)member    = array_index;
+    } else {
+        va_start(ap, member);
+        buffer_len = va_arg(ap, int);
+        memset((char *)member, 0, buffer_len);
+        snprintf((char *)member, buffer_len, "%s", tmp_node);
+        va_end (ap);
+    }
+    return parent_obj;
+}
+static int json_field_update(struct json_parser* json_parser, char *json_oid, void *value, enum json_type type)
+{
+    if (util_json_object_is_error(json_parser->json_object) || json_oid == NULL || value == NULL) return -1;
+
+    struct json_object *parent_obj = NULL;
+    struct json_object *member_obj = NULL;
+    int               is_array_obj = 0;
+    char              *member_key  = NULL;
+    int               member_index = 0;
+    int               oid_len      = 0;
+    int               ret          = 0;
+
+    /* store JSON-OID */
+    oid_len = strlen(json_oid) + 1;
+    member_key = calloc(1, oid_len);
+    if (!member_key) return -1;
+    memcpy(member_key, json_oid, oid_len);
+
+    /* test whether @member_obj is array object */
+    if (*(member_key + oid_len - 2) == ']') is_array_obj = true;
+    memset(member_key, 0, oid_len);
+
+    do {
+        /* generate the @parent_obj */
+        if (is_array_obj) {
+            parent_obj = Json_field_search_parent_object(json_parser, json_oid, &member_index);
+            if (util_json_object_is_error(parent_obj)
+                ||
+                parent_obj->o_type != json_type_array)
+            {
+                ret = -1;
+                break;
+            }
+        } else {
+            parent_obj = Json_field_search_parent_object(json_parser, json_oid, member_key, oid_len);
+            if (util_json_object_is_error(parent_obj)
+                ||
+                parent_obj->o_type != json_type_object)
+            {
+                ret = -1;
+                break;
+            }
+        }
+
+        /* generate the @member_obj */
+        switch (type)
+        {
+            case json_type_boolean:
+                member_obj = util_json_object_parse_bool(*(bool *)value);
+                break;
+            case json_type_int:
+                member_obj = util_json_object_parse_int(*(int *)value);
+                break;
+            case json_type_double:
+                member_obj = util_json_object_parse_double(*(double *)value);
+                break;
+            case json_type_string:
+                member_obj = util_json_object_parse_string((char *)value);
+                break;
+            default :
+                ret = -1;
+                break;
+        }
+        if (ret == -1 || util_json_object_is_error(member_obj))
+        {
+            ret = -1;
+            break;
+        }
+
+        /* update the @member_obj in @parent_obj*/
+        if (is_array_obj) {
+            util_json_array_update_object_by_idx(parent_obj, member_index, member_obj);
+        } else {
+            util_json_object_del_object_by_key(parent_obj, member_key);
+            util_json_object_add_object_by_key(parent_obj, member_key, member_obj);
+        }
+    } while(0);
+
+    free(member_key);
+    return ret;
 }
 static int json_parser_update(struct json_parser* json_parser, json_op op, struct json_op_attr *op_attr)
 {
     if (!json_parser) return -1;
     if (!op_attr) return -1;
-	return 0;
+    int ret = 0;
+
+    switch (op_attr->op_type)
+    {
+        case JSON_OP_UPDATE_BOOL:
+            ret = json_field_update(json_parser, op_attr->op_data.update_data.json_oid,
+                    &op_attr->op_data.update_data.value.json_bool, json_type_boolean);
+            break;
+        case JSON_OP_UPDATE_INT32:
+            ret = json_field_update(json_parser, op_attr->op_data.update_data.json_oid,
+                    &op_attr->op_data.update_data.value.json_int, json_type_int);
+            break;
+        case JSON_OP_UPDATE_DOUBLE:
+            ret = json_field_update(json_parser, op_attr->op_data.update_data.json_oid,
+                    &op_attr->op_data.update_data.value.json_double, json_type_double);
+            break;
+        case JSON_OP_UPDATE_STRING:
+            ret = json_field_update(json_parser, op_attr->op_data.update_data.json_oid,
+                    op_attr->op_data.update_data.value.json_string, json_type_string);
+            break;
+        default:
+            break;
+    }
+
+    return ret;
+}
+
+static int json_field_delete(struct json_parser* json_parser, char *json_oid)
+{
+    if (util_json_object_is_error(json_parser->json_object) || json_oid == NULL) return -1;
+
+    struct json_object *parent_obj = NULL;
+    struct json_object *member_obj = NULL;
+    int               is_array_obj = 0;
+    char              *member_key  = NULL;
+    int               member_index = 0;
+    int               oid_len      = 0;
+    int               ret          = 0;
+
+    /* store JSON-OID */
+    oid_len = strlen(json_oid) + 1;
+    member_key = calloc(1, oid_len);
+    if (!member_key) return -1;
+    memcpy(member_key, json_oid, oid_len);
+
+    /* test whether @member_obj is array object */
+    if (*(member_key + oid_len - 2) == ']') is_array_obj = true;
+    memset(member_key, 0, oid_len);
+
+    /* not support deleting the array obj */
+    if (is_array_obj) return -1;
+
+    do {
+        /* generate the @parent_obj */
+        if (is_array_obj) {
+            parent_obj = Json_field_search_parent_object(json_parser, json_oid, &member_index);
+            if (util_json_object_is_error(parent_obj)
+                ||
+                parent_obj->o_type != json_type_array)
+            {
+                ret = -1;
+                break;
+            }
+        } else {
+            parent_obj = Json_field_search_parent_object(json_parser, json_oid, member_key, oid_len);
+            if (util_json_object_is_error(parent_obj)
+                ||
+                parent_obj->o_type != json_type_object)
+            {
+                ret = -1;
+                break;
+            }
+        }
+
+        /* delete the @member_obj in @parent_obj*/
+        if (is_array_obj) {
+            //util_json_array_update_object_by_idx(parent_obj, member_index, member_obj);
+        } else {
+            util_json_object_del_object_by_key(parent_obj, member_key);
+        }
+    } while(0);
+
+    free(member_key);
+    return ret;
 }
 static int json_parser_delete(struct json_parser* json_parser, json_op op, struct json_op_attr *op_attr)
 {
     if (!json_parser) return -1;
     if (!op_attr) return -1;
-	return 0;
+    return json_field_delete(json_parser, op_attr->op_data.update_data.json_oid);
 }
+
+
 static int json_parser_dump(struct json_parser* json_parser, json_op op, struct json_op_attr *op_attr)
 {
     if (!json_parser) return -1;
