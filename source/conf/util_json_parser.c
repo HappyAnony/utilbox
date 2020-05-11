@@ -40,116 +40,108 @@
 static int parse_json_oid(const char *json_oid, struct json_parser *json_parser)
 {
     if (!json_oid || !json_parser) return -1;
-    char *path   = NULL;
-    char *pPre   = NULL;
-    char *pCur   = NULL;
-    char *pTmp   = NULL;
-    int   localFieldNum = 0;            /* 字段数 */
-    int   localArrayIndex = 0;          /* 数组嵌套层次 */
-    int   fullFlag = 0;                 /* 数组符号[]配对标志 */
-    int   cpyFlag  = 1;                 /* 没有数组符号[]标志 */
+    char *path         = NULL;
+    char *p_pre        = NULL;
+    char *p_cur        = NULL;
+    char *p_tmp        = NULL;
+    int   field_num    = 0;            /* The number of JSON-FIELD in JSON-OID */
+    int   array_index  = 0;            /* The depth of JSON-ARRAY in JSON-FIELD */
+    int   is_match_flag= 0;            /* The flag of brackets-matching([]) */
+    int   is_null_flag = 1;            /* The flag of non-brackets */
 
     struct json_field* json_field = json_parser->json_field;
 
     path = strdup(json_oid);
     if (!path) return -1;
 
-    /* fieldStr不能以.或[或]开头, 不能以.或[结尾 */
-    pTmp = path;
-    if (*pTmp == '.' || *pTmp == '[' || *pTmp == ']'
+    /* json_oid
+     * can not start with . or [ or ]
+     * can not end with . or [
+     */
+    p_tmp = path;
+    if (*p_tmp == '.' || *p_tmp == '[' || *p_tmp == ']'
         ||
-        *(pTmp = path + strlen(path) - 1) == '.'
+        *(p_tmp = path + strlen(path) - 1) == '.'
         ||
-        *(pTmp = path + strlen(path) - 1) == '[')
-    {
+        *(p_tmp = path + strlen(path) - 1) == '[') {
         free(path);
         return -1;
     }
 
-    pPre = path;
-    pCur = pPre;
+    p_pre = path;
+    p_cur = p_pre;
 
-    while('\0' != *pCur)
+    while('\0' != *p_cur)
     {
-        /* 以].符号作为字段分隔符, ]在下面操作中会被置为'\0' */
-        if (*pCur == '.'
+        /* with ]. as the separator of JSON_FIELD
+         * ] should be set to '\0' below
+         */
+        if (*p_cur == '.'
             &&
-            *(pTmp = pCur - 1) == '\0')
-        {
-            if (++localFieldNum >= json_parser->attr.json_field_num
+            *(p_tmp = p_cur - 1) == '\0') {
+            if (++field_num >= json_parser->attr.json_field_num
                 ||
-                *(pTmp = pCur + 1) == '\0')
-            {
+                *(p_tmp = p_cur + 1) == '\0') {
                 free(path);
                 return -1;
             }
-            localArrayIndex = 0;   /* 解析新字段, 重置该变量 */
-            cpyFlag         = 1;   /* 解析新字段, 重置该标志 */
-            pCur++;
-            pPre = pCur;
+            array_index      = 0;   /* parse the new JSON-FIELD, and reset the value to 0*/
+            is_null_flag     = 1;   /* parse the new JSON-FIELD, and reset the value to 1 */
+            p_cur++;
+            p_pre = p_cur;
             continue;
         }
 
-        /* 开始解析[]数组 */
-        if (*pCur == '[')
-        {
-            if (*(pTmp = pCur - 1) == '.'
+        /* parse JSON-ARRAY and JSON-DICT */
+        if (*p_cur == '[') {
+            if (*(p_tmp = p_cur - 1) == '.'
                 ||
-                *(pTmp = pCur + 1) == ']'
+                *(p_tmp = p_cur + 1) == ']'
                 ||
-                *(pTmp = pCur + 1) == '.')
-            {
+                *(p_tmp = p_cur + 1) == '.') {
                 free(path);
                 return -1;
             }
 
-            cpyFlag = 0;
-            *pCur = '\0';
-            /* 解析[][]数组嵌套时, [被置为'\0' */
-            if (*(pTmp = pCur - 1) != '\0')
-            {
-                strncpy(json_field[localFieldNum].json_dict, pPre, json_parser->attr.json_dict_length - 1);
-                json_field[localFieldNum].exist = true;
+            is_null_flag = 0;
+            *p_cur = '\0';
+            /* parse [][], ] will be set to '\0' */
+            if (*(p_tmp = p_cur - 1) != '\0') {
+                strncpy(json_field[field_num].json_dict, p_pre, json_parser->attr.json_dict_length - 1);
+                json_field[field_num].exist = true;
             }
-            pCur++;
-            pPre = pCur;
+            p_cur++;
+            p_pre = p_cur;
 
-            do
-            {
-                if (localArrayIndex >= json_parser->attr.json_array_depth)
-                {
+            do {
+                if (array_index >= json_parser->attr.json_array_depth) {
                     free(path);
                     return -1;
                 }
-                /* 数组符号[]配置成功 */
-                if (*pCur == ']')
-                {
-                    *pCur = '\0';
-                    json_field[localFieldNum].json_arry[localArrayIndex].index = atoi(pPre);
-                    json_field[localFieldNum].json_arry[localArrayIndex].exist = true;
-                    localArrayIndex++;
-                    fullFlag = 1;
+                /* [] brackets match success */
+                if (*p_cur == ']') {
+                    *p_cur = '\0';
+                    json_field[field_num].json_arry[array_index].index = atoi(p_pre);
+                    json_field[field_num].json_arry[array_index].exist = true;
+                    array_index++;
+                    is_match_flag = 1;
                     break;
                 }
-                pCur++;
-            } while(*pCur != '\0');
+                p_cur++;
+            } while(*p_cur != '\0');
 
-            if (!fullFlag)
-            {
+            if (!is_match_flag) {
                 free(path);
                 return -1;
-            }
-            else
-            {
-                fullFlag = 0;
+            } else {
+                is_match_flag = 0;
             }
         }
-        pCur++;
+        p_cur++;
     }
-    if (cpyFlag && pCur - pPre > 0)
-    {
-        strncpy(json_field[localFieldNum].json_dict, pPre, json_parser->attr.json_dict_length - 1);
-        json_field[localFieldNum].exist = true;
+    if (is_null_flag && p_cur - p_pre > 0) {
+        strncpy(json_field[field_num].json_dict, p_pre, json_parser->attr.json_dict_length - 1);
+        json_field[field_num].exist = true;
     }
 
     free(path);
@@ -196,6 +188,7 @@ static int json_parser_parse(struct json_parser* json_parser, json_op op, struct
     		json_parser->json_object = util_json_object_parse_string(op_attr->op_data.parse_data.json_string);
     		break;
     	case JSON_OP_PARSE_FILE:
+    	    json_parser->json_object = util_json_object_parse_file(op_attr->op_data.parse_data.json_file);
     		break;
     	default:
     		break;
@@ -910,7 +903,6 @@ static int json_parser_delete(struct json_parser* json_parser, json_op op, struc
     return json_field_delete(json_parser, op_attr->op_data.update_data.json_oid);
 }
 
-
 static int json_parser_dump(struct json_parser* json_parser, json_op op, struct json_op_attr *op_attr)
 {
     if (!json_parser) return -1;
@@ -934,6 +926,7 @@ static int json_parser_dump(struct json_parser* json_parser, json_op op, struct 
     				"%s", util_json_object_dump_string(json_parser->json_object));
     		break;
     	case JSON_OP_DUMP_FILE:
+    	    util_json_object_dump_file(json_parser->json_object, op_attr->op_data.dump_data.json_file);
     		break;
     	default:
     		break;

@@ -33,6 +33,7 @@
 #include <json-c/json.h>
 #include <json-c/json_object.h>
 #include <json-c/json_object_private.h>
+#include <json-c/json_util.h>
 
 
 /* util_json_object_is_error - test whether struct json_object @json_object is legal
@@ -251,6 +252,18 @@ struct json_object* util_json_object_parse_string_slice(char *s, int len);
 
 
 
+/*
+ * util_json_object_parse_file - parse the @filename json file and return the corresponding struct_object object
+ * @filename: the json file name
+ * @return: &struct json_object pointer
+ *
+ * &struct json_object pointer can be tested whether is legal by util_json_object_is_error
+ * &struct json_object pointer can be freed by util_json_object_free
+ * */
+struct json_object* util_json_object_parse_file(const char *filename);
+
+
+
 /* util_json_object_dump_bool - convert @json_object to bool data
  * @json_object: &struct json_object pointer
  * @return: bool data
@@ -288,6 +301,17 @@ double util_json_object_dump_double(struct json_object* json_object);
  * Return NULL when @json_object is NULL
  * */
 char* util_json_object_dump_string(struct json_object* json_object);
+
+
+
+/* util_json_object_dump_file - dump @json_object to @filename json file
+ * @json_object: &struct json_object pointer
+ * @filename: the json file name
+ * @return: zero for success, non-zero for fail
+ *
+ * Return -1 when @json_object is NULL
+ * */
+int util_json_object_dump_file(struct json_object* json_object, const char* filename);
 
 
 

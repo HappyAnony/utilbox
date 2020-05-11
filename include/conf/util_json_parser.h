@@ -74,7 +74,7 @@
  * */
 
 struct json_parser_attr {
-    /* The maximum number of fields in JSON-OID supported by the json-parser
+    /* The maximum number of JSON-FIELD in JSON-OID supported by the json-parser
      * defalut value is defined by JSON_FIELD_NUM_MAX macro*/
     unsigned int json_field_num;
 
@@ -197,8 +197,34 @@ struct json_op_attr{
     }               op_data;
 };
 
+/*
+ * json_parser_create - create a json-parser
+ * @attr: the attribution of json-parser
+ * @return: &struct json_parser pointer
+ *
+ * the attribution of json-parser will be set to default value when @attr is NULL
+ * Return NULL when create json-parser fail
+ * */
 struct json_parser* json_parser_create(struct json_parser_attr *attr);
+
+
+
+/*
+ * json_parser_ctl - to parse, CURD, dump by json-parser
+ * @json_parser:@struct json_parser pointer
+ * @op: the operation type supported by json-parser
+ * @op_attr: the attribution of operation type
+ * @return: zero for success, non-zero for fail
+ * */
 int json_parser_ctl(struct json_parser* json_parser, json_op op, struct json_op_attr *op_attr);
+
+
+
+/*
+ * json_parser_free - free @json_parser
+ * @json_parser: &struct json_parser pointer
+ * @return: zero for success, non-zero for fail
+ * */
 int json_parser_free(struct json_parser* json_parser);
 
 #endif /* __UTIL_JSON_PARSER_H__ */

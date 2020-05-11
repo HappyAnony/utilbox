@@ -167,6 +167,12 @@ struct json_object* util_json_object_parse_string_slice(char *s, int len)
     return json_object_new_string_len(s, len);
 }
 
+struct json_object* util_json_object_parse_file(const char *filename)
+{
+    if (!filename) return NULL;
+    return json_object_from_file(filename);
+}
+
 bool util_json_object_dump_bool(struct json_object* json_object)
 {
     return json_object_get_boolean(json_object);
@@ -190,6 +196,13 @@ char* util_json_object_dump_string(struct json_object* json_object)
 #else
     return json_object_to_json_string(json_object);
 #endif
+}
+
+int util_json_object_dump_file(struct json_object* json_object, const char* filename)
+{
+    if (util_json_object_is_error(json_object)) return -1;
+    if (!filename) return -1;
+    return json_object_to_file(filename, json_object);
 }
 
 struct lh_table* util_json_object_dump_table(struct json_object* json_object)
