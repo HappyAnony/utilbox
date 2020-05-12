@@ -1,0 +1,2 @@
+#cmakedefine  UTIL_CONF_ENABLE
+#cmakedefine  UTIL_SQT_ENABLE
