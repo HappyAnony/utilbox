@@ -1,3 +1,5 @@
+find_package(LibJsonc REQUIRED)
+
 # set source files
 set(src
     util_json.c
