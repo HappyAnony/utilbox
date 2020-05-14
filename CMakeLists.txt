@@ -20,8 +20,19 @@ set(UTILBOX_SOVERSION ${UTILBOX_MAJOR_VERSION}.${UTILBOX_MINOR_VERSION})
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/CMakeModules")
 message(CHECK_START  "${CMAKE_MODULE_PATH}")
 
+# set c make flags
 include(setCFlags)
 
+# set utilbox's options
+option(UTIL_CONF_ENABLE  "Use utilbox provided conf implementation" ON)
+option(UTIL_SQT_ENABLE   "Use utilbox provided sqt implementation" OFF)
+
+#configure a header file to pass some of the CMake settings to the source code
+configure_file(utilboxConfig.h.in utilboxConfig.h @ONLY)
+
 # add the source code directory
+if(UTIL_CONF_ENABLE)
 add_subdirectory(source/conf)
+endif(UTIL_CONF_ENABLE)
+
 add_subdirectory(source)
