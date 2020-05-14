@@ -20,6 +20,7 @@ set(UTILBOX_SOVERSION ${UTILBOX_MAJOR_VERSION}.${UTILBOX_MINOR_VERSION})
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/CMakeModules")
 message(CHECK_START  "${CMAKE_MODULE_PATH}")
 
+include(setCFlags)
 
 # add the source code directory
 add_subdirectory(source/conf)
