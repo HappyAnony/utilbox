@@ -26,3 +26,11 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+
+ #include <conf/util_json.h>
+ #include <conf/util_json_parser.h>
+
+int main()
+{
+    return 0;
+}

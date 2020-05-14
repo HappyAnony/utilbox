@@ -14,16 +14,18 @@ set(inc
 add_library(utilconf_static STATIC ${src})
 add_library(utilconf_shared SHARED ${src})
 
-# add search path for include files
+# add search path for static library include files
 target_include_directories(utilconf_static PUBLIC
                            "${PROJECT_SOURCE_DIR}"
                            "${PROJECT_SOURCE_DIR}/include"
+                           "${LIBJOSNC_INCLUDE_DIRS}"
                            )
 
-# add search path for include files
+# add search path for shared library include files
 target_include_directories(utilconf_shared PUBLIC
                            "${PROJECT_SOURCE_DIR}"
                            "${PROJECT_SOURCE_DIR}/include"
+                           "${LIBJSONC_INCLUDE_DIRS}"
                            )
 
 # set library output name

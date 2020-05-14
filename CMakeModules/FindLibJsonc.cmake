@@ -37,10 +37,52 @@ if (LIBJSONC_INCLUDE_DIRS AND LIBJSONC_LIBRARY_DIRS)
     # already in cache
     set (LIBJSONC_FOUND TRUE)
 else (LIBJSONC_INCLUDE_DIRS AND LIBJSONC_LIBRARY_DIRS)
-    set (LIBJSONC_FOUND FALSE)
+    
+    find_path(LIBJSONC_INCLUDE_DIRS
+      NAMES
+        json-c/json.h
+        json-c/json_object.h
+        json-c/json_object_private.h
+        json-c/json_util.h
+      PATHS
+        /usr/include
+        /usr/local/include
+        /opt/local/include
+        ${CMAKE_INCLUDE_PATH}
+        ${CMAKE_INSTALL_PREFIX}/include
+    )
+
+    find_library(LIBJSONC_LIBRARY
+      NAMES
+        libjson-c.so
+      PATHS
+        /usr/lib
+        /usr/local/lib
+        /opt/local/lib
+        ${CMKAE_LIBRARY_PATH}
+        ${CMAKE_INSTALL_PREFIX}/lib
+    )
+
+    if (LIBJSONC_INCLUDE_DIRS AND LIBJSONC_LIBRARY)
+        set(LIBJSONC_FOUND TRUE)
+    else (LIBJSONC_INCLUDE_DIRS AND LIBJSONC_LIBRARY)
+        set(LIBJSONC_FOUND FALSE)
+    endif (LIBJSONC_INCLUDE_DIRS AND LIBJSONC_LIBRARY)
+
+    if (LIBJSONC_FOUND)
+        string(REPLACE "libjson-c.so" ""
+          LIBJSONC_LIBRARY_DIRS
+          ${LIBJSONC_LIBRARY}
+        )
+    endif (LIBJSONC_FOUND)
+
 endif (LIBJSONC_INCLUDE_DIRS AND LIBJSONC_LIBRARY_DIRS) 
 
+message(STATUS "LIBJSONC_FOUND       : ${LIBJSONC_FOUND}       ")
+message(STATUS "LIBJSONC_INCLUDE_DIRS: ${LIBJSONC_INCLUDE_DIRS}") 
+message(STATUS "LIBJSONC_LIBRARY_DIRS: ${LIBJSONC_LIBRARY_DIRS}") 
+
 if (NOT LIBJSONC_FOUND)
-    message(FATAL_ERROR "json-c library is not found")                                                                                                                                             
+    message(FATAL_ERROR "json-c library not found") 
 endif(NOT LIBJSONC_FOUND)
 
