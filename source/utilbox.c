@@ -27,10 +27,22 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
- #include <conf/util_json.h>
- #include <conf/util_json_parser.h>
+#include <stdio.h>
+#include <conf/util_json.h>
+#include <conf/util_json_parser.h>
+
+static void utilbox_banner()
+{
+    printf("Welcome to utilbox!\n");
+}
 
 int main()
 {
+    utilbox_banner();
+
+    struct json_parser* json_parser = NULL;
+    json_parser = json_parser_create(NULL);
+    json_parser_free(json_parser);
+
     return 0;
 }

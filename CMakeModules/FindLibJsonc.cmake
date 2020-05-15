@@ -4,6 +4,7 @@
 #   LIBJSONC_FOUND - system has LibJsonc
 #   LIBJSONC_INCLUDE_DIRS - the LibJsonc include directory
 #   LIBJSONC_LIBRARY_DIRS - the LibJsonc library directory
+#   LIBJSONC_LIBRARY_NAME - the LibJsonc library name
 #
 # Copyright (c) 2020-2030, HappyAnony <13545108786@163.com>
 # All rights reserved.
@@ -74,6 +75,8 @@ else (LIBJSONC_INCLUDE_DIRS AND LIBJSONC_LIBRARY_DIRS)
           LIBJSONC_LIBRARY_DIRS
           ${LIBJSONC_LIBRARY}
         )
+
+        set(LIBJSONC_LIBRARY_NAME "json-c")
     endif (LIBJSONC_FOUND)
 
 endif (LIBJSONC_INCLUDE_DIRS AND LIBJSONC_LIBRARY_DIRS) 

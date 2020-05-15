@@ -1,0 +1,169 @@
+execute_process(COMMAND ls ../src OUTPUT_VARIABLE file_list)
+MESSAGE(STATUS "file1:"${file_list})
+
+FILE(GLOB file_list "${CMAKE_SOURCE_DIR}/src/*")
+MESSAGE(STATUS "file1:"${file_list})
+
+FILE(GLOB file_list "${CMAKE_SOURCE_DIR}/src/*cpp")
+MESSAGE(STATUS "file1:"${file_list})
+
+FILE(GLOB file_list RELATIVE ${CMAKE_SOURCE_DIR} "${CMAKE_SOURCE_DIR}/src/*")
+MESSAGE(STATUS "file1:"${file_list})
+
+LIST(LENGTH file_list file_count)
+message(STATUS "list_count:"${file_count})
+
+FOREACH(var ${file_list})
+    MESSAGE(STATUS "file:"${var})
+    IF(var MATCHES ".*cpp" )
+        MESSAGE(STATUS "matched:"${var})
+    ENDIF(var MATCHES ".*cpp")
+ENDFOREACH(var ${file_list})
+
+function(tst_arguments src_list)
+    message("ARGC = "${ARGC})
+    message("ARGV = "${ARGV})
+
+    set(INDEX 0)
+                    
+    while(INDEX LESS ${ARGC})
+        message("ARG = "${ARGV${INDEX}})
+        math(EXPR INDEX "${INDEX} + 1")
+    endwhile()
+endfunction()
+
+if (LIBSSH_LIBRARY_DIR AND LIBSSH_INCLUDE_DIRS)
+  # in cache already
+  set(LIBSSH_FOUND TRUE)
+else (LIBSSH_LIBRARY_DIR AND LIBSSH_INCLUDE_DIRS)
+
+  find_path(LIBSSH_INCLUDE_DIR
+    NAMES
+      libssh/libssh.h
+    PATHS
+      /usr/include
+      /usr/local/include
+      /opt/local/include
+      /sw/include
+      ${CMAKE_INCLUDE_PATH}
+      ${CMAKE_INSTALL_PREFIX}/include
+  )
+
+  find_library(SSH_LIBRARY
+    NAMES
+      ssh.so
+      libssh.so
+    PATHS
+      /usr/lib
+      /usr/local/lib
+      /opt/local/lib
+      /sw/lib
+      ${CMAKE_LIBRARY_PATH}
+      ${CMAKE_INSTALL_PREFIX}/lib
+  )
+
+  if (LIBSSH_INCLUDE_DIR AND SSH_LIBRARY)
+    set(SSH_FOUND TRUE)
+  endif (LIBSSH_INCLUDE_DIR AND SSH_LIBRARY)
+
+  set(LIBSSH_INCLUDE_DIRS
+    ${LIBSSH_INCLUDE_DIR}
+  )
+
+  if (SSH_FOUND)
+    string(REPLACE "libssh.so" ""
+      LIBSSH_LIBRARY_DIR
+      ${SSH_LIBRARY}
+    )
+    string(REPLACE "ssh.so" ""
+      LIBSSH_LIBRARY_DIR
+      ${LIBSSH_LIBRARY_DIR}
+    )
+
+    if (LibSSH_FIND_VERSION)
+      file(STRINGS ${LIBSSH_INCLUDE_DIR}/libssh/libssh.h LIBSSH_VERSION_MAJOR
+        REGEX "#define[ ]+LIBSSH_VERSION_MAJOR[ ]+[0-9]+")
+      # Older versions of libssh like libssh-0.2 have LIBSSH_VERSION but not LIBSSH_VERSION_MAJOR
+      if (LIBSSH_VERSION_MAJOR)
+        string(REGEX MATCH "[0-9]+" LIBSSH_VERSION_MAJOR ${LIBSSH_VERSION_MAJOR})
+	file(STRINGS ${LIBSSH_INCLUDE_DIR}/libssh/libssh.h LIBSSH_VERSION_MINOR
+          REGEX "#define[ ]+LIBSSH_VERSION_MINOR[ ]+[0-9]+")
+	string(REGEX MATCH "[0-9]+" LIBSSH_VERSION_MINOR ${LIBSSH_VERSION_MINOR})
+	file(STRINGS ${LIBSSH_INCLUDE_DIR}/libssh/libssh.h LIBSSH_VERSION_PATCH
+          REGEX "#define[ ]+LIBSSH_VERSION_MICRO[ ]+[0-9]+")
+	string(REGEX MATCH "[0-9]+" LIBSSH_VERSION_PATCH ${LIBSSH_VERSION_PATCH})
+
+	set(LibSSH_VERSION ${LIBSSH_VERSION_MAJOR}.${LIBSSH_VERSION_MINOR}.${LIBSSH_VERSION_PATCH})
+
+	include(FindPackageVersionCheck)
+	find_package_version_check(LibSSH DEFAULT_MSG)
+      else (LIBSSH_VERSION_MAJOR)
+        message(STATUS "LIBSSH_VERSION_MAJOR not found in ${LIBSSH_INCLUDE_DIR}/libssh/libssh.h, assuming libssh is too old")
+        set(LIBSSH_FOUND FALSE)
+      endif (LIBSSH_VERSION_MAJOR)
+    endif (LibSSH_FIND_VERSION)
+  endif (SSH_FOUND)
+
+  # If the version is too old, but libs and includes are set,
+  # find_package_handle_standard_args will set LIBSSH_FOUND to TRUE again,
+  # so we need this if() here.
+  if (LIBSSH_FOUND)
+    include(FindPackageHandleStandardArgs)
+    find_package_handle_standard_args(LibSSH DEFAULT_MSG LIBSSH_LIBRARY_DIR LIBSSH_INCLUDE_DIRS)
+  endif (LIBSSH_FOUND)
+
+  # show the LIBSSH_INCLUDE_DIRS and LIBSSH_LIBRARY_DIR variables only in the advanced view
+  mark_as_advanced(LIBSSH_INCLUDE_DIRS LIBSSH_LIBRARY_DIR)
+
+endif (LIBSSH_LIBRARY_DIR AND LIBSSH_INCLUDE_DIRS)
+function(FIND_PACKAGE_VERSION_CHECK _NAME _FAIL_MSG)
+  string(TOUPPER ${_NAME} _NAME_UPPER)
+  set(_AGE "old")
+
+  if(${_NAME}_FIND_VERSION_EXACT)
+    if (${_NAME}_FIND_VERSION VERSION_EQUAL ${_NAME}_VERSION)
+      # exact version found
+      set(${_NAME_UPPER}_FOUND TRUE)
+    else (${_NAME}_FIND_VERSION VERSION_EQUAL ${_NAME}_VERSION)
+      # exect version not found
+      set(${_NAME_UPPER}_FOUND FALSE)
+      # check if newer or older
+      if (${_NAME}_FIND_VERSION VERSION_LESS ${_NAME}_VERSION)
+        set(_AGE "new")
+      else (${_NAME}_FIND_VERSION VERSION_LESS ${_NAME}_VERSION)
+        set(_AGE "old")
+      endif (${_NAME}_FIND_VERSION VERSION_LESS ${_NAME}_VERSION)
+    endif (${_NAME}_FIND_VERSION VERSION_EQUAL ${_NAME}_VERSION)
+  else (${_NAME}_FIND_VERSION_EXACT)
+    if (${_NAME}_FIND_VERSION)
+      if (${_NAME}_VERSION VERSION_LESS ${_NAME}_FIND_VERSION)
+        set(${_NAME_UPPER}_FOUND FALSE)
+        set(_AGE "old")
+      else (${_NAME}_VERSION VERSION_LESS ${_NAME}_FIND_VERSION)
+        set(${_NAME_UPPER}_FOUND TRUE)
+     endif (${_NAME}_VERSION VERSION_LESS ${_NAME}_FIND_VERSION)
+    endif (${_NAME}_FIND_VERSION)
+  endif(${_NAME}_FIND_VERSION_EXACT)
+
+  if ("${_FAIL_MSG}" STREQUAL "DEFAULT_MSG")
+    if (${_NAME}_FIND_VERSION_EXACT)
+      set(_FAIL_MESSAGE "The installed ${_NAME} version ${${_NAME}_VERSION} is too ${_AGE}, version ${${_NAME}_FIND_VERSION} is required.")
+    else (${_NAME}_FIND_VERSION_EXACT)
+      set(_FAIL_MESSAGE "The installed ${_NAME} version ${${_NAME}_VERSION} is too ${_AGE}, at least version ${${_NAME}_FIND_VERSION} is required.")
+    endif (${_NAME}_FIND_VERSION_EXACT)
+  else ("${_FAIL_MSG}" STREQUAL "DEFAULT_MSG")
+    set(_FAIL_MESSAGE "${_FAIL_MSG}")
+  endif ("${_FAIL_MSG}" STREQUAL "DEFAULT_MSG")
+
+  if (NOT ${_NAME_UPPER}_FOUND)
+    if (${_NAME}_FIND_REQUIRED)
+      message(FATAL_ERROR "${_FAIL_MESSAGE}")
+    else (${_NAME}_FIND_REQUIRED)
+      if (NOT ${_NAME}_FIND_QUIETLY)
+        message(STATUS "${_FAIL_MESSAGE}")
+      endif (NOT ${_NAME}_FIND_QUIETLY)
+    endif (${_NAME}_FIND_REQUIRED)
+  endif (NOT ${_NAME_UPPER}_FOUND)
+
+  set(${_NAME_UPPER}_FOUND ${${_NAME_UPPER}_FOUND} PARENT_SCOPE)
+endfunction(FIND_PACKAGE_VERSION_CHECK)

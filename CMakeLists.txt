@@ -18,10 +18,9 @@ set(UTILBOX_SOVERSION ${UTILBOX_MAJOR_VERSION}.${UTILBOX_MINOR_VERSION})
 
 # include custom modules
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/CMakeModules")
-message(CHECK_START  "${CMAKE_MODULE_PATH}")
 
-# set c make flags
-include(setCFlags)
+include(SetCMakeFlags)
+include(UtilFunctions)
 
 # set utilbox's options
 option(UTIL_CONF_ENABLE  "Use utilbox provided conf implementation" ON)
