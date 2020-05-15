@@ -108,7 +108,7 @@ int util_json_object_free(struct json_object* json_object);
  *
  * Return NULL when convert fail
  * */
-char* util_json_object_to_string(struct json_object *json_object);
+const char* util_json_object_to_string(struct json_object *json_object);
 
 
 
@@ -300,7 +300,7 @@ double util_json_object_dump_double(struct json_object* json_object);
  *
  * Return NULL when @json_object is NULL
  * */
-char* util_json_object_dump_string(struct json_object* json_object);
+const char* util_json_object_dump_string(struct json_object* json_object);
 
 
 

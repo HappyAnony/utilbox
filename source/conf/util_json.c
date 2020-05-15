@@ -63,7 +63,7 @@ int util_json_object_free(struct json_object* json_object)
     return 0;
 }
 
-char* util_json_object_to_string(struct json_object *json_object)
+const char* util_json_object_to_string(struct json_object *json_object)
 {
     if (util_json_object_is_error(json_object)) return NULL;
     return json_object_to_json_string(json_object);
@@ -188,7 +188,7 @@ double util_json_object_dump_double(struct json_object* json_object)
     return json_object_get_double(json_object);
 }
 
-char* util_json_object_dump_string(struct json_object* json_object)
+const char* util_json_object_dump_string(struct json_object* json_object)
 {
     if (util_json_object_is_error(json_object)) return NULL;
 #if 0

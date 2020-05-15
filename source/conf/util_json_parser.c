@@ -44,10 +44,10 @@ static int parse_json_oid(const char *json_oid, struct json_parser *json_parser)
     char *p_pre        = NULL;
     char *p_cur        = NULL;
     char *p_tmp        = NULL;
-    int   field_num    = 0;            /* The number of JSON-FIELD in JSON-OID */
-    int   array_index  = 0;            /* The depth of JSON-ARRAY in JSON-FIELD */
-    int   is_match_flag= 0;            /* The flag of brackets-matching([]) */
-    int   is_null_flag = 1;            /* The flag of non-brackets */
+    unsigned int   field_num    = 0;            /* The number of JSON-FIELD in JSON-OID */
+    unsigned int   array_index  = 0;            /* The depth of JSON-ARRAY in JSON-FIELD */
+    unsigned int   is_match_flag= 0;            /* The flag of brackets-matching([]) */
+    unsigned int   is_null_flag = 1;            /* The flag of non-brackets */
 
     struct json_field* json_field = json_parser->json_field;
 
@@ -152,6 +152,7 @@ static int json_parser_new(struct json_parser* json_parser, json_op op, struct j
 {
     if (!json_parser) return -1;
     if (!op_attr) return -1;
+    if (op >= JSON_OP_NUM) return -1;
 
     switch (op_attr->op_type)
     {
@@ -172,6 +173,7 @@ static int json_parser_parse(struct json_parser* json_parser, json_op op, struct
 {
     if (!json_parser) return -1;
     if (!op_attr) return -1;
+    if (op >= JSON_OP_NUM) return -1;
 
     switch (op_attr->op_type)
     {
@@ -447,6 +449,7 @@ static int json_parser_add(struct json_parser* json_parser, json_op op, struct j
 {
     if (!json_parser) return -1;
     if (!op_attr) return -1;
+    if (op >= JSON_OP_NUM) return -1;
 
     int ret = 0;
 
@@ -533,7 +536,7 @@ static struct json_object *json_field_search_object(struct json_parser* json_par
         {
             if (json_parser->json_field[field_item].json_arry[array_item].exist) {
                 if (tmp_obj->o_type == json_type_array) {
-                    obj = JsonArrayGetFieldByIdx(tmp_obj, json_parser->json_field[field_item].json_arry[array_item].index);
+                    obj = util_json_array_get_object_by_idx(tmp_obj, json_parser->json_field[field_item].json_arry[array_item].index);
                     if (util_json_object_is_error(obj)) return NULL;
                     tmp_obj = obj;
                 } else {
@@ -588,6 +591,7 @@ static int json_parser_get(struct json_parser* json_parser, json_op op, struct j
 {
     if (!json_parser) return -1;
     if (!op_attr) return -1;
+    if (op >= JSON_OP_NUM) return -1;
 
     int ret = 0;
 
@@ -811,6 +815,7 @@ static int json_parser_update(struct json_parser* json_parser, json_op op, struc
 {
     if (!json_parser) return -1;
     if (!op_attr) return -1;
+    if (op >= JSON_OP_NUM) return -1;
     int ret = 0;
 
     switch (op_attr->op_type)
@@ -843,7 +848,7 @@ static int json_field_delete(struct json_parser* json_parser, char *json_oid)
     if (util_json_object_is_error(json_parser->json_object) || json_oid == NULL) return -1;
 
     struct json_object *parent_obj = NULL;
-    struct json_object *member_obj = NULL;
+    //struct json_object *member_obj = NULL;
     int               is_array_obj = 0;
     char              *member_key  = NULL;
     int               member_index = 0;
@@ -900,6 +905,7 @@ static int json_parser_delete(struct json_parser* json_parser, json_op op, struc
 {
     if (!json_parser) return -1;
     if (!op_attr) return -1;
+    if (op >= JSON_OP_NUM) return -1;
     return json_field_delete(json_parser, op_attr->op_data.update_data.json_oid);
 }
 
@@ -907,6 +913,7 @@ static int json_parser_dump(struct json_parser* json_parser, json_op op, struct 
 {
     if (!json_parser) return -1;
     if (!op_attr) return -1;
+    if (op >= JSON_OP_NUM) return -1;
 
     if (util_json_object_is_error(json_parser->json_object)) return -1;
 
