@@ -23,8 +23,9 @@ include(SetCMakeFlags)
 include(UtilFunctions)
 
 # set utilbox's options
-option(UTIL_CONF_ENABLE  "Use utilbox provided conf implementation" ON)
-option(UTIL_SQT_ENABLE   "Use utilbox provided sqt implementation" OFF)
+option(UTIL_CONF_ENABLE        "Use utilbox provided conf implementation" ON)
+option(UTIL_SQT_ENABLE         "Use utilbox provided sqt implementation" OFF)
+option(UTIL_SYSTEM_ENABLE      "Use utilbox provided system implementation" ON)
 
 #configure a header file to pass some of the CMake settings to the source code
 configure_file(utilboxConfig.h.in utilboxConfig.h @ONLY)
@@ -33,5 +34,13 @@ configure_file(utilboxConfig.h.in utilboxConfig.h @ONLY)
 if(UTIL_CONF_ENABLE)
 add_subdirectory(source/conf)
 endif(UTIL_CONF_ENABLE)
+
+if(UTIL_SQT_ENABLE)
+add_subdirectory(source/sqt)
+endif(UTIL_SQT_ENABLE)
+
+if(UTIL_SYSTEM_ENABLE)
+add_subdirectory(source/system)
+endif(UTIL_SYSTEM_ENABLE)
 
 add_subdirectory(source)

@@ -26,43 +26,25 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+#ifndef __SHELL_EXEC_H__
+#define __SHELL_EXEC_H__
 
-#include <stdio.h>
-#include <utilboxConfig.h>
+/* system_exec_shell_cmd - execute @cmd shell command by system
+ * @cmd: shell command string
+ * @return: 0 for success, -1 for fail
+ *
+ * */
+int system_exec_shell_cmd(const char *cmd);
 
-#if defined(UTIL_CONF_ENABLE)
-#include <conf/util_json.h>
-#include <conf/util_json_parser.h>
-#endif
 
-#if defined(UTIL_SYSTEM_ENABLE)
-#include <system/util_shell_exec.h>
-#endif
 
-static void utilbox_banner()
-{
-    printf("Welcome to utilbox!\n");
-}
+/* popen_exec_shell_cmd - execute @cmd shell command by popen and return execution result
+ * @cmd: shell command string
+ * @res: store the @cmd shell command execution result
+ * @len: the length of @cmd shell command
+ * @return: 0 for success, -1 for fail
+ *
+ * */
+int popen_exec_shell_cmd(const char *cmd, char *res, unsigned int len);
 
-int main()
-{
-    utilbox_banner();
-
-#if defined(UTIL_CONF_ENABLE)
-    struct json_parser* json_parser = NULL;
-    json_parser = json_parser_create(NULL);
-    json_parser_free(json_parser);
-#endif
-
-#if defined(UTIL_SYSTEM_ENABLE)
-    char cmd_str[1024] = {};
-    char res_str[1024] = {};
-    snprintf(cmd_str, sizeof(cmd_str), "ls");
-    if (0 == popen_exec_shell_cmd(cmd_str, res_str, sizeof(res_str)))
-        printf("%s\n", res_str);
-    else
-        printf("%s exec fail\n", cmd_str);
-#endif
-
-    return 0;
-}
+#endif /* __SHELL_EXEC_H__ */

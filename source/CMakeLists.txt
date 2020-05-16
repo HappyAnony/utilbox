@@ -10,6 +10,12 @@ list(APPEND EXTRA_LIBS utilsqt_static)
 list(APPEND EXTRA_LIBS_DIRS "${PROJECT_BINARY_DIR}/source/sqt")
 endif()
 
+# add the utilsystem  library
+if(UTIL_SYSTEM_ENABLE)
+list(APPEND EXTRA_LIBS utilsystem_static)
+list(APPEND EXTRA_LIBS_DIRS "${PROJECT_BINARY_DIR}/source/system")
+endif()
+
 # search source file list
 utilbox_search_c_source_file("${PROJECT_SOURCE_DIR}/source" utilboxsrc)
 

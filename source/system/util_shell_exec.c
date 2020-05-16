@@ -27,42 +27,48 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <stdlib.h>
 #include <stdio.h>
-#include <utilboxConfig.h>
-
-#if defined(UTIL_CONF_ENABLE)
-#include <conf/util_json.h>
-#include <conf/util_json_parser.h>
-#endif
-
-#if defined(UTIL_SYSTEM_ENABLE)
+#include <string.h>
 #include <system/util_shell_exec.h>
-#endif
 
-static void utilbox_banner()
+int system_exec_shell_cmd(const char *cmd)
 {
-    printf("Welcome to utilbox!\n");
+    if (cmd) {
+        int ret = 0;
+        ret = system(cmd);
+        if ((-1 != ret) && WIFEXITED(ret) && (0 == WEXITSTATUS(ret)))
+            return 0;
+        else
+            return -1;
+    }
+    return -1;
 }
 
-int main()
+int popen_exec_shell_cmd(const char *cmd, char *res, unsigned int len)
 {
-    utilbox_banner();
+    if (cmd == NULL || res == NULL) return -1;
 
-#if defined(UTIL_CONF_ENABLE)
-    struct json_parser* json_parser = NULL;
-    json_parser = json_parser_create(NULL);
-    json_parser_free(json_parser);
-#endif
+    FILE    *fp = NULL;
+    char    local[1024] = {0};
 
-#if defined(UTIL_SYSTEM_ENABLE)
-    char cmd_str[1024] = {};
-    char res_str[1024] = {};
-    snprintf(cmd_str, sizeof(cmd_str), "ls");
-    if (0 == popen_exec_shell_cmd(cmd_str, res_str, sizeof(res_str)))
-        printf("%s\n", res_str);
-    else
-        printf("%s exec fail\n", cmd_str);
-#endif
+    if ((fp = popen(cmd, "r")) == NULL) return -1;
+
+    if (fread(local, 1, sizeof(local) - 1, fp) <= 0) {
+        pclose(fp);
+        return -1;
+    }
+
+    /* escape the blank space */
+    while (*local == ' ') snprintf(local, sizeof(local) - 1, "%s", local + 1);
+
+    /* escape \r and \n */
+    char *tmp = NULL;
+    if ((tmp = strchr(local, '\r')) != NULL) *tmp = '\0';
+    if ((tmp = strchr(local, '\n')) != NULL) *tmp = '\0';
+    if (res) snprintf(res, len - 1, "%s", local);
+
+    pclose(fp);
 
     return 0;
 }
