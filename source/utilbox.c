@@ -28,8 +28,12 @@
  */
 
 #include <stdio.h>
+#include <utilboxConfig.h>
+
+#if defined(UTIL_CONF_ENABLE)
 #include <conf/util_json.h>
 #include <conf/util_json_parser.h>
+#endif
 
 static void utilbox_banner()
 {
@@ -40,9 +44,11 @@ int main()
 {
     utilbox_banner();
 
+#if defined(UTIL_CONF_ENABLE)
     struct json_parser* json_parser = NULL;
     json_parser = json_parser_create(NULL);
     json_parser_free(json_parser);
+#endif
 
     return 0;
 }

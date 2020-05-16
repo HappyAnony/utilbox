@@ -18,6 +18,7 @@ add_executable(utilbox ${utilboxsrc})
 
 # add search path for include files
 target_include_directories(utilbox PUBLIC
+                           "${PROJECT_BINARY_DIR}"
                            "${PROJECT_SOURCE_DIR}"
                            "${PROJECT_SOURCE_DIR}/include")
 
