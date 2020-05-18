@@ -1,3 +1,3 @@
-#cmakedefine  UTIL_CONF_ENABLE
-#cmakedefine  UTIL_SQT_ENABLE
-#cmakedefine  UTIL_SYSTEM_ENABLE
+#cmakedefine  UTIL_CONF_ENABLE      (1)
+#cmakedefine  UTIL_SQT_ENABLE       (1)
+#cmakedefine  UTIL_SYSTEM_ENABLE    (1)

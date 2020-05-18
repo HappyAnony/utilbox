@@ -30,12 +30,12 @@
 #include <stdio.h>
 #include <utilboxConfig.h>
 
-#if defined(UTIL_CONF_ENABLE)
+#if (UTIL_CONF_ENABLE)
 #include <conf/util_json.h>
 #include <conf/util_json_parser.h>
 #endif
 
-#if defined(UTIL_SYSTEM_ENABLE)
+#if (UTIL_SYSTEM_ENABLE)
 #include <system/util_shell_exec.h>
 #endif
 
@@ -48,13 +48,13 @@ int main()
 {
     utilbox_banner();
 
-#if defined(UTIL_CONF_ENABLE)
+#if (UTIL_CONF_ENABLE)
     struct json_parser* json_parser = NULL;
     json_parser = json_parser_create(NULL);
     json_parser_free(json_parser);
 #endif
 
-#if defined(UTIL_SYSTEM_ENABLE)
+#if (UTIL_SYSTEM_ENABLE)
     char cmd_str[1024] = {};
     char res_str[1024] = {};
     snprintf(cmd_str, sizeof(cmd_str), "ls");
