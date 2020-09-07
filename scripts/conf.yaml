@@ -1,0 +1,70 @@
+# pclint安装路径
+pclintInstall:    F:\lint
+
+# 项目名称(区分报告生成,暂时没有用到)
+projectName:    G2
+
+# 项目头文件目录名(该目录名会加上-i前缀写入std.lnt文件中, 指定pclint检查过程中头文件搜索路径)
+# 包括通用头文件目录、驱动头文件目录、管理软件头文件目录
+includeDirName:
+  - C:\Users\HappyAnony\Desktop\lint\common\include
+  - C:\Users\HappyAnony\Desktop\lint\app\src\drv\bdd\platform\bia
+  - C:\Users\HappyAnony\Desktop\lint\app\src\drv\bdd\platform\common
+  - C:\Users\HappyAnony\Desktop\lint\app\src\drv\bdd\platform\ddi
+  - C:\Users\HappyAnony\Desktop\lint\app\src\drv\bdd\platform\ddl
+  - C:\Users\HappyAnony\Desktop\lint\app\src\drv\bdd\platform\include
+  - C:\Users\HappyAnony\Desktop\lint\app\src\drv\bdd\platform\ipcp
+  - C:\Users\HappyAnony\Desktop\lint\app\src\drv\bdd\ngis\product
+  - C:\Users\HappyAnony\Desktop\lint\app\src\drv\bdd\ngis\include
+  - C:\Users\HappyAnony\Desktop\lint\app\src\drv\bdd\ngis\bia
+  - C:\Users\HappyAnony\Desktop\lint\app\src\drv\bdd\ngis\bds
+  - C:\Users\HappyAnony\Desktop\lint\app\src\mng\source
+  - C:\Users\HappyAnony\Desktop\lint\app\src\mng\source\business\inc
+  - C:\Users\HappyAnony\Desktop\lint\app\src\mng\source\common\inc
+  - C:\Users\HappyAnony\Desktop\lint\app\src\mng\source\device\inc
+  - C:\Users\HappyAnony\Desktop\lint\app\src\mng\source\enmsutil\inc
+  - C:\Users\HappyAnony\Desktop\lint\app\src\mng\source\mngApi\inc
+  - C:\Users\HappyAnony\Desktop\lint\app\src\mng\source\port\inc
+  - C:\Users\HappyAnony\Desktop\lint\app\src\mng\source\service
+  - C:\Users\HappyAnony\Desktop\lint\app\src\mng\source\service\cli\inc
+  - C:\Users\HappyAnony\Desktop\lint\app\src\mng\source\service\cli\app
+  - C:\Users\HappyAnony\Desktop\lint\app\src\mng\source\service\cli\cli_telnet
+  - C:\Users\HappyAnony\Desktop\lint\app\src\mng\source\service\cli\protocol
+  - C:\Users\HappyAnony\Desktop\lint\app\src\mng\source\service\privilege\inc
+  - C:\Users\HappyAnony\Desktop\lint\app\src\mng\source\service\rpc\inc
+  - C:\Users\HappyAnony\Desktop\lint\app\src\mng\source\service\rpc\app\general
+  - C:\Users\HappyAnony\Desktop\lint\app\src\mng\source\service\rpc\app\general\inc
+  - C:\Users\HappyAnony\Desktop\lint\app\src\mng\source\service\rpc\app\general\product\inc
+  - C:\Users\HappyAnony\Desktop\lint\app\src\mng\source\service\snmp\inc
+  - C:\Users\HappyAnony\Desktop\lint\app\src\mng\source\service\snmp\app\ice\inc
+  - C:\Users\HappyAnony\Desktop\lint\app\src\mng\source\service\snmp\app\ngis\inc
+  - C:\Users\HappyAnony\Desktop\lint\app\src\mng\source\service\snmp\app\semp\inc
+  - C:\Users\HappyAnony\Desktop\lint\app\src\mng\source\stream\inc
+  - C:\Users\HappyAnony\Desktop\lint\app\src\mng\source\stream\3rdsdk\include
+  - C:\Users\HappyAnony\Desktop\lint\app\src\mng\source\system\inc
+
+# 待检查驱动源码目录名
+drvSrcDirName:
+  # - X:\ngis_b4309\package\semp_system\app\src\drv\bdd\platform\ddl
+  # -
+
+# 待检查驱动源码文件名
+drvSrcFileName:
+  # -   X:\ngis_b4309\package\semp_system\app\src\drv\bdd\ngis\bds\bds_ipcp.c
+
+# 待检查管理源码目录名
+mngSrcDirName:
+  #- C:\Users\HappyAnony\Desktop\lint\app\src\mng\source\port\src
+  #- 
+
+# 待检查管理源码文件名
+mngSrcFileName:
+  - C:\Users\HappyAnony\Desktop\lint\app\src\mng\source\port\src\ifInfo.c
+  # - X:\ngis_b4309\package\semp_system\app\src\mng\source\environment.c
+
+# 上次pclint报告路径(用于与本次结果对比生成报告，如果为空，表示是第一次生成报告)
+lastPclintReport:  #D:\Users\Administrator\Desktop\pclintRes\last
+
+# 本次pclint报告生成路径
+currentPclintReport:  C:\Users\HappyAnony\Desktop\pclintRes\cur\1
+
